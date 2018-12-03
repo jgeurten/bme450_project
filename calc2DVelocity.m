@@ -1,8 +1,13 @@
-function [vx_dt, vy_dt] = calc2DVelocity(centers)
+function [vx_dt, vy_dt, range] = calc2DVelocity(centers, cam_type)
 
 % Constants
-DDT_THRES = 0.5;
-PUCK_SZ_PX = 70; % Diameter in pixels (empirically calc over multiple frames)
+if(strcmp(cam_type,'top'))
+    PUCK_SZ_PX = 70; % Diameter in pixels (empirically calc over multiple frames)
+    DDT_THRES = 2;
+else
+    PUCK_SZ_PX = 55;
+    DDT_THRES = 6;
+end
 PUCK_SZ_M = 76/1000; % Puck diameter: 76mm
 FRAME_RATE = 240;    % FPS
 PERIOD = 1/FRAME_RATE; % in seconds
@@ -39,14 +44,27 @@ saveas(gcf, 'Derivative_Y_Center.png')
 
 % First instance of moving puck -- averaged from the dx and dy channel
 % (+) dx --> left to right (global: forward); (+) dy --> top to bottom (global: right)
-frame_idx = round((find(dxx > DDT_THRES, 1) + find(dyy > DDT_THRES, 1))/2); 
+
+frame_idx = round((find(abs(dx) > DDT_THRES, 1) + find(abs(dy) > DDT_THRES, 1))/2) - 2; 
 
 % Calculate derivative of center point of the puck [pixels/second]
 vx = mean(dxx(frame_idx:end)); vy = mean(dyy(frame_idx:end)); 
-vxx =  (x(end) - x(frame_idx))/(length(x) - frame_idx); 
-vyy =  (y(end) - y(frame_idx))/(length(y) - frame_idx); 
+non_x = ~isnan(x); non_y = ~isnan(y);
+
+if(strcmp(cam_type,'top'))
+    last_x_idx = length(x); 
+    last_y_idx = length(y); 
+else
+    last_x_idx = find(isnan(x), 1)-1;
+    last_y_idx = find(isnan(y), 1)-1;
+end
+
+vxx =  (x(last_x_idx) - x(frame_idx))/(last_x_idx - frame_idx); 
+vyy =  (y(last_y_idx) - y(frame_idx))/(last_y_idx - frame_idx); 
 
 vx_dt = vxx*(PUCK_SZ_M/PUCK_SZ_PX)/PERIOD; % in m/s
 vy_dt = vyy*(PUCK_SZ_M/PUCK_SZ_PX)/PERIOD; % in m/s
+
+range = [frame_idx round(mean([last_x_idx last_y_idx],2))];
 
 end
