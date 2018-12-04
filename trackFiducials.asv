@@ -35,20 +35,23 @@ function [fiducial_centers] = trackFiducials(frame, radii, centers)
     radii = radii + OFFSET;
     % Bounding box:
     cx = centers(1); cy = centers(2);
-    left = cx - radii; width = radii*2;
-    top = cy - radii; height = radii*2;
+    left = round(cx - radii); width = round(radii*2);
+    top = round(cy - radii); height = round(radii*2);
 
-    figure, imshow(frame);
-    rectangle('Position', [left, top, width, height],...
-            'EdgeColor','r','LineWidth',2 )
-
-    puck = frame(top:top+height, left:left+width,:);
+%     figure, imshow(frame);
+%     rectangle('Position', [left, top, width, height],...
+%             'EdgeColor','r','LineWidth',2 )
+    if(left+width > size(frame,2))
+        puck = frame(top:top+height, left:end,:);
+    else
+        puck = frame(top:top+height, left:left+width,:);
+    end
     puck = imresize(puck, 4);
     puck_blur = imgaussfilt(puck, 3);
-    figure, imshow(puck_blur)
+%     figure, imshow(puck_blur)
     [fid_centers, fid_radii] = imfindcircles(puck_blur,[R_MIN R_MAX],...
         'ObjectPolarity','bright','Sensitivity', SENS); %,'Method', 'twostage');
-    viscircles(fid_centers, fid_radii,'LineStyle','--');
+    %viscircles(fid_centers, fid_radii,'LineStyle','--');
     fiducial_centers = [fiducial_centers; fid_centers];
 
     % convert to LAB space to get red (red usually fails):
@@ -62,15 +65,65 @@ function [fiducial_centers] = trackFiducials(frame, radii, centers)
     se = strel('disk', 7); 
     opened_bw = imopen(mask, se); 
     closed_bw = imclose(opened_bw, se); 
-    % figure, imshow(a_bw);
-    FID = regionprops(a_bw, {'Centroid', 'Area', 'BoundingBox'});
+    % figure, imshow(closed_bw);
+    FID = regionprops(closed_bw, {'Centroid', 'Area', 'BoundingBox'});
     for i = 1:length(FID)
         if(FID(i).Area > MIN_FID_AREA && FID(i).Area < MAX_FID_AREA  )
             fiducial_centers = [fiducial_centers; FID(i).Centroid];
         end
     end
+% 
+%     RGB = insertMarker(puck_blur,fiducial_centers);
+%     figure, imshow(RGB)
+    
+    % Make sure only one type of fiducial is found
+    if(length(fiducial_centers ) > 3)
+        [idx,C] = kmeans(fiducial_centers,3);
+        ones = find(idx == 1); %indices
+        twos = find(idx == 2); 
+        threes = find(idx == 3); 
 
-    RGB = insertMarker(puck_blur,fiducial_centers);
-    figure, imshow(RGB)
+        % Best one is closest to center px
+        if(length(ones)>1)
+            dists = [];
+            for i = 1:length(ones)
+                dists = [dists; pdist([fiducial_centers(ones(i),:); centers])];
+            end
+            [~,best_one] = min(dists); 
+            best_one = ones(best_one); 
+        else
+            best_one = ones;
+        end
+
+        if(length(twos)>1)
+            dists = [];
+            for i = 1:length(twos)
+                dists = [dists; pdist([fiducial_centers(twos(i),:); centers])];
+            end
+            [~,best_two] = min(dists); 
+            best_two = twos(best_two); 
+        else
+            best_two = twos;
+        end
+        
+
+        if(length(threes)>1)
+            dists = [];
+            for i = 1:length(threes)
+                dists = [dists; pdist([fiducial_centers(threes(i),:); centers])];
+            end
+            [~,best_three] = min(dists); 
+            best_three = threes(best_three); 
+        else
+            best_three = threes;
+        end
+        
+        fiducial_centers = [fiducial_centers(best_one,:);fiducial_centers(best_two,:); ...
+            fiducial_centers(best_three,:)];
+        
+    end
+
+    % Scale fiducials back to global image frame
+    fiducial_centers = fiducial_centers
 
 end
