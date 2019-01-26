@@ -44,6 +44,8 @@ function [fiducial_centers] = trackFiducials(frame, radii, centers)
 %             'EdgeColor','r','LineWidth',2 )
     if(left+width > size(frame,2))
         puck = frame(top:top+height, left:end,:);
+    elseif(top+height > size(frame,1))
+     puck = frame(top:end, left:left+width,:);
     else
         puck = frame(top:top+height, left:left+width,:);
     end
@@ -73,7 +75,9 @@ function [fiducial_centers] = trackFiducials(frame, radii, centers)
 %     RGB = insertMarker(puck_blur,fiducial_centers);
 %     figure, imshow(RGB)
     
-    % convert to LAB space to get red (red usually fails):
+    % Old method to track both yellow and red markers and ensure only one
+    % of each class was found (deprecated for simpler, more accurate
+    % approach)
 % 
 %     lab = rgb2lab(puck_blur);
 %     %l_channel = lab(:,:,1);

@@ -1,6 +1,6 @@
 function [x, final,t] = simPuckTrajectory(launch_params)
 
-    global radius mass rho area inertia gravity wx wy wz Cd Cl Cm alpha
+    global radius mass rho area inertia gravity 
     
     GOAL_DIST = 4.60;     % dist from board to puck in m
 
@@ -15,20 +15,18 @@ function [x, final,t] = simPuckTrajectory(launch_params)
     % Neglect rotation about x and y axes
     wy = 0; 
     wx = 0; 
-    
-    [Cd, Cl, Cm] = calcAeroCoeffs(alpha); 
-
+   
     gravity = 9.81; %m/s/s
     radius = 76/1000/2; % Puck diameter: 76mm
     mass = 165/1000;    % Puck mass: 165 g
-    area = pi*radius^2;
+    area = radius*2*25/1000; %pi*radius^2;
     inertia = 0.5*mass*radius^2;
     rho = 1.225; % kg/m^3
 
     %  x(1)=Vx, x(2)=Vy, x(3)=Vz, x(4)=X, x(5)=Y, x(6)=Z, x(7)= wz, 
     %  x(8)= ws, x(9) = alpha
     t0 = 0;
-    tf = 10;
+    tf = 20;
     x0 = [vx, vy, vz, 0, 0, 0, wz, 0, alpha]';   % launch conditions
 
     options = odeset('RelTol',1e-5,'AbsTol',1e-6);

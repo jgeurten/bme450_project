@@ -6,7 +6,7 @@ close all;
 SENS = 27.5; 
 ADDI = 50; 
 AREA = 500; 
-THRESH = 2000; % threshold for difference operator
+THRESH = 3000; % threshold for difference operator
 PUCK_MIN_AREA = 100; 
 MED_FILT_SIZE = 7; 
 PXS_PER_M = 320;
@@ -16,7 +16,7 @@ R_23 = [166 8 0];
 R_13 = R_12+R_23; 
 
 %disp('Cropping Final Position Video ...')
-v = VideoReader('Shot_0.MP4'); 
+v = VideoReader('Cam_Net_Clipped/Shot_5.MP4'); 
 nFrames = round(v.Duration*v.FrameRate); 
 
 % Get the position of the 'goal' posts
@@ -81,7 +81,7 @@ sums_green = zeros(nFrames - 10, 1);
 sums_blue = zeros(nFrames - 10, 1);
 count = 1; 
 % Calculate first differences
-for i = 1:nFrames -10
+for i = 1:5:nFrames -10
     testFrames_cur = read(v, i); 
     testFrames_next = read(v, i+1); 
     red_frame_diffs = testFrames_next(:,:,1) - testFrames_cur(:,:,1); 
@@ -124,7 +124,7 @@ figure, imshow(impact_frame)
 rectangle('Position', [PUCK_REGION.BoundingBox(1),PUCK_REGION.BoundingBox(2),...
     PUCK_REGION.BoundingBox(3),PUCK_REGION.BoundingBox(4)],  'EdgeColor','r','LineWidth',2 ) 
 
-puck_centroid = PUCK_REGION.Centroid; 
+puck_centroid = PUCK_REGION.Centroid 
 R_puck_1 = puck_centroid - bottom_left.centroid; 
 R_puck_2 = puck_centroid - left_corner.centroid; 
 R_puck_3 = puck_centroid - right_corner.centroid; 

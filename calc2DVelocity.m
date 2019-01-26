@@ -17,6 +17,17 @@ dx = diff(x); dy = diff(y);
 dxx = smooth(dx); 
 dyy = smooth(dy); 
 
+figure, hold on
+plot(1:length(x),x, 'LineWidth', 3, 'Color', 'b',  'DisplayName', 'X Centroid' )
+plot(1:length(y),y, 'LineWidth', 3, 'Color', 'r',  'DisplayName', 'Y Centroid')
+
+legend('show')
+
+xlabel('Frame Number');
+ylabel('Position (px)'); 
+title('Position Centroid vs Frame')
+
+
 % Plot position data
 figure, plot(1:length(x),x, 'LineWidth', 3)
 xlabel('Frame Number');
@@ -45,7 +56,7 @@ saveas(gcf, 'Derivative_Y_Center.png')
 % First instance of moving puck -- averaged from the dx and dy channel
 % (+) dx --> left to right (global: forward); (+) dy --> top to bottom (global: right)
 
-frame_idx = round((find(abs(dx) > DDT_THRES, 1) + find(abs(dy) > DDT_THRES, 1))/2) - 2; 
+frame_idx = round((find(abs(dxx) > DDT_THRES, 1) + find(abs(dyy) > DDT_THRES, 1))/2) - 2; 
 
 % Calculate derivative of center point of the puck [pixels/second]
 vx = mean(dxx(frame_idx:end)); vy = mean(dyy(frame_idx:end)); 
@@ -57,6 +68,11 @@ if(strcmp(cam_type,'top'))
 else
     last_x_idx = find(isnan(x), 1)-1;
     last_y_idx = find(isnan(y), 1)-1;
+end
+
+if(last_y_idx < frame_idx | last_x_idx < frame_idx)
+    last_x_idx = frame_idx + 20; 
+    last_y_idx = frame_idx + 20; 
 end
 
 vxx =  (x(last_x_idx) - x(frame_idx))/(last_x_idx - frame_idx); 

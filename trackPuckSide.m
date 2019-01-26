@@ -21,7 +21,7 @@ centers = [];
 radii = []; 
 alphas = [];
 
-v = VideoReader('Side_Shot_0.MP4');
+v = VideoReader('Cam_Side_Clipped/Shot_17.MP4');
 nFrames = round(v.Duration*v.FrameRate);
 width = v.Width; height = v. Height; 
 
@@ -38,7 +38,7 @@ for i = 1:nFrames - 10
 %     figure, imshow(mask)
 
     % Close the BW mask first, then open it 
-    se = strel('disk', 7); 
+    se = strel('disk', 2); 
     opened_bw = imopen(mask, se); 
     closed_bw = imclose(opened_bw, se); 
 %     figure, imshow(closed_bw); 
@@ -54,7 +54,7 @@ for i = 1:nFrames - 10
     count = 1; 
     for j = 1:length(regions)
         if(regions(j).Area > MAX_AREA ||  regions(j).Area < MIN_AREA || ... 
-                regions(j).Centroid*[.45 1]' < 150)
+                regions(j).Centroid*[.45 1]' < 120)
             pucks(count) = []; 
         else
             count = count + 1; 
@@ -84,35 +84,50 @@ end
 [~, vy_dt, range] = calc2DVelocity(centers, 'side');
 vy_dt = -vy_dt % The positive image v axis is inverted
 
-attackAngles = alphas(range(1): range(2))*180/pi;
+attackAngles = alphas(range(1): range(2))*180/pi;   %deg for visualization
 attackAngle= mean(attackAngles); 
- stop
+attackAngle*pi/180
 
-    frame_int = imcomplement(frame_int); 
-    level = graythresh(frame_int); 
-    BW = im2bw(frame_int,level);
-    figure, imshow(BW)
-    se = strel('disk',15); 
-    background = erode(BW,se);
-    figure, imshow(background)
 
-    
-    figure
-    for i = range(1):range(2)
-              frame_int = read(v,i);
-        frame_int = frame_int( TOP:BOTTOM,LEFT:RIGHT, :); 
-    %     figure, imshow(frame_int)
-        % THRES
-        gray_frame = rgb2gray(frame_int); 
-    %     figure, imshow(gray_frame)
+figure, scatter(1:length(attackAngles),attackAngles, 'LineWidth', 2);
+xlabel('Frame after Shot'); 
+ylabel('Angle of Attack (deg)'); 
+title('Angle of Attack vs Frame'); 
 
-        mask = gray_frame(:,:) < 30; 
-    %     figure, imshow(mask)
+frame_int = read(v, range(1)); 
+figure, imshow(frame_int( TOP:BOTTOM,LEFT:RIGHT, :));
 
-        % Close the BW mask first, then open it 
-        se = strel('disk', 7); 
-        opened_bw = imopen(mask, se); 
-        closed_bw = imclose(opened_bw, se); 
-        imshow(closed_bw); 
-        
-    end
+centers_to_view = centers(range(1):range(2),:); 
+radii_to_view = ones(length(centers_to_view),1)*15; 
+viscircles(centers_to_view,radii_to_view,'LineStyle','--');
+
+
+%  stop
+% 
+%     frame_int = imcomplement(frame_int); 
+%     level = graythresh(frame_int); 
+%     BW = im2bw(frame_int,level);
+%     figure, imshow(BW)
+%     se = strel('disk',15); 
+%     background = erode(BW,se);
+%     figure, imshow(background)
+%     
+%     figure
+%     for i = range(1):range(2)
+%               frame_int = read(v,i);
+%         frame_int = frame_int( TOP:BOTTOM,LEFT:RIGHT, :); 
+%     %     figure, imshow(frame_int)
+%         % THRES
+%         gray_frame = rgb2gray(frame_int); 
+%     %     figure, imshow(gray_frame)
+% 
+%         mask = gray_frame(:,:) < 30; 
+%     %     figure, imshow(mask)
+% 
+%         % Close the BW mask first, then open it 
+%         se = strel('disk', 7); 
+%         opened_bw = imopen(mask, se); 
+%         closed_bw = imclose(opened_bw, se); 
+%         imshow(closed_bw); 
+%         
+%     end

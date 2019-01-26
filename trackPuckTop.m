@@ -14,7 +14,7 @@ R_MAX = 80/2;
 SENS = 0.8;
 FPS = 240; 
 
-v = VideoReader('Top_Shot0.MP4');
+v = VideoReader('Cam_Top_Clipped/Shot_17.MP4');
 nFrames = round(v.Duration*v.FrameRate);
 width = v.Width; height = v. Height; 
 
@@ -93,7 +93,7 @@ else
 end
 
 angVel_deg_frame = (final_theta - angle(1))/length(angles);  % angle(1) always == 0
-angVel = angVel_deg_frame*pi/180*FPS; % in units rad/s
+angVel = angVel_deg_frame*pi/180*FPS % in units rad/s
 
 % Cluster the pixel locations to fiducials:
 % 4 Classes: 3 fiducials, 1 zeros - tested by manual classification
